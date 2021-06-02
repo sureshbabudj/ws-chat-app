@@ -1,0 +1,7 @@
+node_modules
+dist
+.DS_Store
+backend/db.json
+backend/mock/db.json
+frontend/public/robots.txt
+frontend/src/reportWebVitals.js

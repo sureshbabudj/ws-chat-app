@@ -1,0 +1,170 @@
+@import "../../variables.scss";
+
+.chat-window {
+    flex: 1 0 auto;
+    border-radius: $border-radius-md;
+    border-style: solid;
+    border-width: 0px 0px 0px 2px;
+    border-color: $light-gray-color;
+    background-color: #edf0f5;
+    margin: 1rem 0;
+    padding: 0 .5rem;
+    vertical-align: top;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    header {
+        padding: 1rem;
+        background-color: #ffffff;
+        border-radius: 1rem;
+        border-bottom: 1px solid #ffffff;
+        color: #000;
+        vertical-align: middle;
+        position: absolute;
+        width: 92%;
+        margin: 0 4%;
+        top: 1rem;
+        left: 0;
+        z-index: 999;
+        box-shadow: 1px 4px 10px 4px #ccc;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-content: center;
+        justify-content: space-between;
+        align-items: baseline;
+        .avatar {
+            margin-right: 1rem;
+            img {
+                object-fit: contain;
+                width: 2rem;
+                border-radius: 50%;
+            }
+        }
+        .actions {
+            margin-left: 1rem;
+        }
+    }
+    #chat {
+        padding-left: 0;
+        margin: 0;
+        list-style-type: none;
+        overflow-y: scroll;
+        border-top: 1px solid $light-gray-color;
+        margin-top: 5rem;
+        flex-grow: 1;
+        li.scroll-ref {
+            padding: 0;
+            margin: 0;
+            height: 1px;
+            visibility: hidden;
+            line-height: 0;
+        }
+        li {
+            padding: 0.5rem 1rem;
+            position: relative;
+            h2,
+            h3 {
+                display: inline-block;
+                font-size: .8rem;
+                font-weight: normal;
+            }
+            h3 {
+                color: $dark-gray-color;
+            }
+            .entete {
+                margin-bottom: .25rem;
+                margin-bottom: 0;
+                h3.unread > svg {
+                    color: $primary-color;
+                }
+            }
+            .message {
+                padding: .5rem;
+                color: $white-color;
+                line-height: 1.5rem;
+                display: inline-block;
+                text-align: left;
+                border-radius: $border-radius-sm;
+                max-width: fit-content;
+                min-width: 3rem;
+            }
+            .triangle {
+                width: 0;
+                height: 0;
+                border-style: solid;
+                border-width: 0 10px 10px 10px;
+                position: absolute;
+            }
+        }   
+        .me {
+            text-align: right;
+            margin-left: 3rem;
+            .message {
+                color: #000000;
+                background-color: #d0d3e3;
+            }
+            .triangle {
+                border-color: transparent transparent #d0d3e3 transparent;
+                top: 2rem;
+                right: 1.5rem;
+            }
+            .entete h3 {
+                margin-left: 1rem;
+            }
+        }
+        .you  {
+            margin-right: 3rem;
+            .message {
+                background-color: $white-color;
+                color: $body-font-color;
+            }
+            .triangle {
+                border-color: transparent transparent$white-color transparent;
+                top: 2rem;
+                left: 1.5rem;
+            }
+            .entete h3 {
+                margin-left: 1rem;
+            }
+        }
+    }
+    footer {
+        margin: 1rem;
+        background-color: $white-color;
+        position: relative;
+        border-radius: $border-radius-sm;
+        textarea {
+            resize: none;
+            border: none;
+            display: block;
+            width: 100%;
+            height: 3rem;
+            border-radius: $border-radius-sm;
+            padding: 0.5rem;
+            font-size: 1rem;
+            background-color: transparent;
+            padding-right: 3rem;
+        }
+        textarea::placeholder {
+            color: $light-gray-color;
+        }
+        img {
+            height: 1.5rem;
+            cursor: pointer;
+        }
+        button {
+            color: $primary-color;
+            position: absolute;
+            right: .5rem;
+            top: .5rem;
+            height: 2rem;
+            outline: none;
+            background: transparent;
+            border: 0px none;
+            &:hover {
+                color: $secondary-color;
+            }
+        }
+    }
+}

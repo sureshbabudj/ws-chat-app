@@ -1,0 +1,36 @@
+@import '../../variables.scss';
+
+.sidebar {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: space-between;
+    .logo {
+        color: $secondary-color;
+        margin-top: 2rem;
+    }
+    .nav {
+        flex-direction: column;
+        a.nav-link {
+            color: $dark-gray-color;
+            border-radius:  $border-radius-sm;
+            margin: 1rem .65rem;
+            line-height: 2rem;
+        }
+        a.nav-link:hover, a.nav-link.active {
+            background-color: $light-gray-color;
+            color: $primary-color;
+        }
+        a.nav-link.active  {
+            color: $secondary-color;
+        }
+    }
+    .profile {
+        margin-bottom: 2rem;
+        img {
+            object-fit: contain;
+            width: 2.5rem;
+            border-radius: 50%;
+        }
+    }
+}

@@ -1,0 +1,94 @@
+@import "../../variables.scss";
+
+.chat-item {
+    display: flex;
+    flex-direction: row;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    max-height: 80px;
+    overflow: hidden;
+    border-bottom: 1px solid $light-border-color;
+    .chat-item-avatar {
+        padding-right: 0.5rem;
+        flex: 0 1 auto;
+        display: flex;
+        align-items: center;
+        img {
+            border-radius: 50%;
+            width: 2rem;
+            min-width: 36px;
+        }
+    }
+    .chat-item-content {
+        flex: 0 1 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: baseline;
+        justify-content: flex-start;
+        min-width: 0;
+        .chat-item-extras {
+            display: flex;
+            flex-direction: row;
+            align-items: start;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 1rem;
+            .chat-item-author {
+                font-weight: 500;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                flex: 0 1 auto;
+            }
+            .chat-item-time {
+                text-align: right;
+                color: $dark-gray-color;
+                font-size: 0.9rem;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                flex: 1 0 auto;
+                margin-left: 1rem;
+            }
+        }
+        .chat-item-msg {
+            flex: 0 1 auto;
+            .chat-item-msg-inner {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                flex-wrap: nowrap;
+                align-content: space-around;
+                justify-content: space-between;
+                span.msg {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    font-size: 1rem;
+                    margin: 0;
+                    padding: 0;
+                    max-width: 12rem;
+                    white-space: nowrap;
+
+                }
+                span.msg:hover {
+                    font-weight: 500;
+                }
+                .chat-item-count {
+                    color: $white-color;
+                    margin: 0.2rem;
+                }
+            }
+        }
+    }
+}
+.chat-item:hover {
+    background-color: #eee;
+    .chat-item-extras {
+        .chat-item-author {
+            color: $primary-color;
+        }
+        .chat-item-time {
+            color: $secondary-color;
+        }
+    }
+}
