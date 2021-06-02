@@ -6,15 +6,13 @@ import './ChatItem.scss';
 function ChatItem({chat, user, selectThread, groups, persons}) {
     let [chatData, setChatData] = useState({});
     useEffect(() => {
-        let temp = chat.author, data = {};
+        let temp = chat.author._id;
         if (!chat.isGroupChat) {
-            temp = user._id === chat.author ? chat.recipient : chat.author;
-            data = persons.find(person => person._id === temp);
+            temp = user._id === chat.author._id ? chat.recipient : chat.author;
         } else {
-            temp = chat.recipient;
-            data = groups.find(group => group._id === temp);
+            temp = chat.recipient
         }
-        setChatData(data);
+        setChatData(temp);
     }, [])
     return (
         <div className="chat-item" onClick={() => selectThread({_id: chatData._id ? chatData._id : '', isGroupChat: chat.isGroupChat}) }>   
@@ -39,9 +37,7 @@ function ChatItem({chat, user, selectThread, groups, persons}) {
 
 function mapStateToProps(state) {
     return {
-        user: state.loginReducer.user,
-        groups: state.groupsReducer,
-        persons: state.personsReducer
+        user: state.loginReducer.user
     };
 }
 function mapDispatchToProps(dispatch) {
