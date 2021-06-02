@@ -30,7 +30,6 @@ function personsChatReducer(state = [], {type, data}) {
     }
 }
 
-
 function threadStoreReducer(state = {groups: [], personal: []}, {type, data}) {
     if (type === 'SET_THREADS') {
         console.log(`threads: ${JSON.stringify(data)}`);
@@ -40,6 +39,24 @@ function threadStoreReducer(state = {groups: [], personal: []}, {type, data}) {
     }
 }
 
-const polling = {groupsReducer, personsReducer, groupsChatReducer, personsChatReducer, threadStoreReducer};
+function chatReducer(state = {new: []}, {type, data}) {
+    if (type === 'POST_CHAT') {
+        console.log(`threads: ${JSON.stringify(data)}`);
+        return data;
+    } else {
+        return state;
+    }
+}
+
+function updateChatsReducer(state = null, action) {
+    if (action.type === 'THREAD_NEW_CHAT') {
+        console.log(action.data.chat);
+        return action.data.chat;
+    } else {
+        return state;
+    }
+}
+
+const polling = {groupsReducer, personsReducer, groupsChatReducer, personsChatReducer, threadStoreReducer, chatReducer, updateChatsReducer};
 export default polling;
 

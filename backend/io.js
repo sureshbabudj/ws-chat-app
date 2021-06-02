@@ -45,39 +45,47 @@ const io = require("socket.io")(httpServer, {
         credentials: true
     }
 });
-
-const getChats = require('./utils/getChats').getChats;
-const getApiAndEmit = (socket) => {
-  try {
-    const response = getChats(socket, true);
-    // Emitting a new message. Will be consumed by the client
-    socket.emit("FromAPI", response);
-  } catch (error) {
-    // Emitting a new message. Will be consumed by the client
-    socket.emit("Error", error);
-  }
-}
-
 const jwt = require('jsonwebtoken');
-let interval;
+// TODO: replace actual db
+const db = require('./mock/db.json');
+const generateChats = require('./mock/util').generateChats;
+const clients = {};
 io.on("connection", (socket) => {
   try {
     // check token validity
     socket.user = jwt.verify(socket.handshake.query.jwt, process.env.TOKEN_SECRET);
+    clients[socket.user._id] = socket.id;
     console.log( socket.user);
   } catch (error) {
     socket.emit("Error", 'Auth Error');
     socket.disconnect();
     console.log('disconnected!');
-    clearInterval(interval);
-  }
-  if (interval) {
-    clearInterval(interval);
-  }
-  interval = setInterval(() => getApiAndEmit(socket), 1000);
+}
+  socket.on("POST_CHAT", async (chatItem, callback) => {
+    try {
+        const chat = generateChats(chatItem, socket);
+        await db.chats.push(chat);
+        let recipient;
+        if (!chat.isGroupChat) {
+          recipient = await db.users.find(user => chat.recipient === user._id);
+        } else {
+          recipient = await db.groups.find(group => chat.recipient === group._id);
+        }
+        const isClientOnline = Object.keys(clients).find(client => client === recipient._id);
+        const compiled = JSON.parse(JSON.stringify(chat));
+        compiled.author = socket.user;
+        compiled.recipient = recipient;
+        if (isClientOnline) {
+          io.to(clients[isClientOnline]).emit('NEW_CHAT', compiled);
+        }
+        callback(compiled);
+    } catch (error) {
+        callback(error);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("Client disconnected");
-    clearInterval(interval);
   });
 });
 

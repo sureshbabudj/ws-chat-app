@@ -1,32 +1,19 @@
-import React, {useEffect} from 'react';
-import {io} from "socket.io-client";
+import React from 'react';
+import socket from "./socketConfig";
 import { connect } from 'react-redux';
 
 function Polling(props) {
-    const ENDPOINT = 'http://localhost:3001';
-    useEffect(() => {
-        const socket  = io(ENDPOINT, { 
-            transport : ['websocket'],
-            query: {jwt: props.jwt}
-        });
-        socket.on("connect", data => {
-            console.log(data);
-        });
-        socket.on("FromAPI", data => {
-            setPersons(data.personal);
-            setGroups(data.groups);
-            setGroupChats(data.groups);
-            setPersonalChats(data.personal);
-            setThreads(data);
-        });
-        socket.on("Error", data => {
-            console.log(data);
-        });
-        // CLEAN UP THE EFFECT
-        return () => socket.disconnect();
-        //
-    }, []);
-
+    socket.on('NEW_CHAT', (chatItem) => {
+        if (!chatItem.isGroupChat) {
+            if (chatItem.recipient._id === props.user._id && props.thread._id === chatItem.author._id) {
+                props.sendNewThreadChat(chatItem);
+            }
+        } else {
+            if (props.thread._id === chatItem.recipient._id) {
+                props.sendNewThreadChat(chatItem);
+            }
+        }
+    });
     function setPersons(persons) {
         const data = [];
         Object.keys(persons).forEach(id => {
@@ -95,7 +82,8 @@ function mapDispatchToProps(dispatch) {
         setPersonalChats: (data) => dispatch({type: 'SET_PERSONAL_CHATS', data}),
         setGroups: (data) => dispatch({type: 'SET_GROUPS', data}),
         setPersons: (data) => dispatch({type: 'SET_PERSONS', data}),
-        setThreads: (data) => dispatch({type: 'SET_THREADS', data})
+        setThreads: (data) => dispatch({type: 'SET_THREADS', data}),
+        sendNewThreadChat: (chat) => dispatch({type: 'THREAD_NEW_CHAT', data: {chat} })
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(Polling);  

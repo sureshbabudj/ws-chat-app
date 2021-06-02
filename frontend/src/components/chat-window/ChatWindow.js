@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import './ChatWindow.scss';
 import axios from 'axios';
 import timeSince from '../../util/timeSince';
+import socket from "../../polling/socketConfig";
 
 function ChatWindow(props) {
     let scrollFocusRef = useRef();
@@ -17,6 +18,12 @@ function ChatWindow(props) {
     useEffect(() => {
         focus()
     }, [chats])
+
+    useEffect(() => {
+        if (props.newThreadChat) {
+            setChats([...chats, props.newThreadChat]);
+        }
+    }, [props.newThreadChat])
 
     function getThread() {
         let url = `http://localhost:3001/api/threads/${props.thread._id}`;
@@ -63,18 +70,23 @@ function ChatWindow(props) {
         }
         const payload = {
             "sentAt": Date.now(),
+            "author": props.user._id,
             "message": inputFocusRef.current.value,
             "tag": "",
             "recipient": props.thread._id,
             "isGroupChat": props.thread.isGroupChat
         };
-        axios.post('http://localhost:3001/api/chats', payload).then(res => {
-            console.log(res.data);
+        socket.emit("POST_CHAT", payload, (res) => {
+            setChats([...chats, res]);
             inputFocusRef.current.value = '';
-            getThread();
-        }).catch(err => {
-            console.error(err);
         });
+        // axios.post('http://localhost:3001/api/chats', payload).then(res => {
+        //     console.log(res.data);
+        //     inputFocusRef.current.value = '';
+        //     getThread();
+        // }).catch(err => {
+        //     console.error(err);
+        // });
     }
     return (
             <main className="chat-window">
@@ -115,7 +127,8 @@ function mapStateToProps(state) {
     return {
         user: state.loginReducer.user,
         jwt: state.loginReducer.jwt,
-        thread: state.threadReducer
+        thread: state.threadReducer,
+        newThreadChat: state.updateChatsReducer
     };
 }
 function mapDispatchToProps(dispatch) {
