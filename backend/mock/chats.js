@@ -130,7 +130,7 @@ async function output() {
         for (let j = 0; j < limit; j++) {
             const name =  getUniqueName(i.members);
             const user = users.find(k => k.name === name);
-            if (user) {
+            if (user && !i.members.includes(user._id)) {
                 user.groups.push(i._id);
                 i.members.push(user._id);
             }   

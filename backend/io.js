@@ -65,22 +65,37 @@ io.on("connection", (socket) => {
     try {
         const chat = generateChats(chatItem, socket);
         await db.chats.push(chat);
-        let recipient;
-        if (!chat.isGroupChat) {
-          recipient = await db.users.find(user => chat.recipient === user._id);
-        } else {
-          recipient = await db.groups.find(group => chat.recipient === group._id);
-        }
-        const isClientOnline = Object.keys(clients).find(client => client === recipient._id);
         const compiled = JSON.parse(JSON.stringify(chat));
-        compiled.author = socket.user;
-        compiled.recipient = recipient;
-        if (isClientOnline) {
-          io.to(clients[isClientOnline]).emit('NEW_CHAT', compiled);
+        compiled.author = socket.user;        
+        if (!chat.isGroupChat) {
+          compiled.recipient = await db.users.find(user => chat.recipient === user._id);
+          const isClientOnline = Object.keys(clients).find(client => client === recipient._id);
+          if (isClientOnline) {
+            socket.to(clients[isClientOnline]).emit('NEW_CHAT', compiled);
+          }
+          callback({data: compiled});
+        } else {
+          compiled.recipient = await db.groups.find(group => chat.recipient === group._id);
+          io.in(compiled.recipient._id).emit('NEW_CHAT', compiled);
+          callback({data: compiled});
         }
-        callback(compiled);
     } catch (error) {
-        callback(error);
+        callback({error});
+    }
+  });
+
+  socket.on("JOIN_GROUP", async (groupId, callback) => {
+    try {
+      const group = await db.groups.find(group => groupId === group._id);
+      if (group) {
+        socket.join(group._id);
+        io.in(group._id).emit(`WELCOME`, `Hi, I (${socket.user.name}) have joined the ${group.name}`);
+        callback({success: `${socket.user._id} has joined the ${groupId}`});
+      } else {
+        callback({error: 'No room found!'});
+      }
+    } catch (error) {
+      callback(error);
     }
   });
 

@@ -77,7 +77,10 @@ function ChatWindow(props) {
             "isGroupChat": props.thread.isGroupChat
         };
         socket.emit("POST_CHAT", payload, (res) => {
-            setChats([...chats, res]);
+            if (!res || res.error || !res.data) {
+                return;
+            }
+            setChats([...chats, res.data]);
             inputFocusRef.current.value = '';
         });
         // axios.post('http://localhost:3001/api/chats', payload).then(res => {

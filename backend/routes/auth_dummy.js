@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
             email: user.email,
             avatar: user.avatar
         };
-        const token = jwt.sign(matchedUser, process.env.TOKEN_SECRET, {expiresIn: 1800});
+        const token = jwt.sign(matchedUser, process.env.TOKEN_SECRET, {expiresIn: 7200});
         res.header('Access-Control-Expose-Headers', '*');
         res.header('Access-Control-Allow-Headers', '*');
         res.header('Authorization', token).json(matchedUser);

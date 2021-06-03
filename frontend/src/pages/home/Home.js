@@ -10,6 +10,7 @@ import axios from 'axios';
 
 function Home(props) {
     const history = useHistory();
+    axios.defaults.headers.common['Authorization'] = `Bearer ${props.jwt}`;
     axios.interceptors.response.use(response => {
         return response;
     }, error => {
@@ -40,6 +41,7 @@ function Home(props) {
 function mapStateToProps(state) {
     return {
         user: state.loginReducer.user,
+        jwt: state.loginReducer.jwt,
         thread: state.threadReducer
     };
 }

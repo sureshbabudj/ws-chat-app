@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import socket from "./socketConfig";
 import { connect } from 'react-redux';
 
@@ -13,6 +13,9 @@ function Polling(props) {
                 props.sendNewThreadChat(chatItem);
             }
         }
+    });
+    socket.on('WELCOME', (msg) => {
+       console.log(msg);
     });
     function setPersons(persons) {
         const data = [];
@@ -63,6 +66,14 @@ function Polling(props) {
         });
         props.setThreads({groups, personal});
     }
+
+    useEffect(() => {
+        if (props.thread.isGroupChat) {
+            socket.emit('JOIN_GROUP', props.thread._id, (data) => {
+                console.log(data);
+            });
+        }
+    }, [props.thread])
 
     return (
         <div />
