@@ -1,15 +1,15 @@
 import React, {useState, useRef} from 'react';
-import { XCircleFill } from 'react-bootstrap-icons';
+import { XCircleFill, PersonFill } from 'react-bootstrap-icons';
 import {Button, ListGroup, InputGroup, DropdownButton, Dropdown, FormControl} from 'react-bootstrap';
 import axios from 'axios';
 import { connect } from 'react-redux';
 
 function SearchBar(props) {
     let [autoCompleteItems, setAutoCompleteItems] = useState([]);
-    let [resource, setResource] = useState('User');
+    let [resource, setResource] = useState('All');
     let searchRef = useRef();
 
-    const resources = ['User', 'Group'];
+    const resources = ['User', 'Group', 'All'];
 
     function fetchResults(e) {
         const value = e.target.value;
@@ -70,7 +70,7 @@ function SearchBar(props) {
                     {autoCompleteItems.map((result, key) =>  (
                         <ListGroup.Item key={key} onClick={() => changeThread(result)}>
                             <div>
-                                <img alt={result.name} src={result.avatar} />
+                                {result.avatar ? <img alt={result.name} src={result.avatar} /> : <PersonFill className="avatar-icon" /> }
                                 <span className="result-name">{result.name}</span>
                                 {result.members && result.members.length > 0 && !result.members.includes(props.user._id) && <Button type="button">Join</Button>}
                             </div>

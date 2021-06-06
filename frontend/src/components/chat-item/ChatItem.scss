@@ -18,6 +18,14 @@
             width: 2rem;
             min-width: 36px;
         }
+        .avatar-icon {
+            border-radius: 50%;
+            background: $dark-gray-color;
+            padding: .35rem;
+            height: 2.65rem;
+            width: 2.65rem;
+            fill: $white-color;
+        }
     }
     .chat-item-content {
         flex: 0 1 auto;

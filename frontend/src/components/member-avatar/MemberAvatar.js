@@ -1,17 +1,18 @@
 import './MemberAvatar.scss';
 import {connect} from 'react-redux';
+import { PersonFill } from 'react-bootstrap-icons';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 
 function MemberAvatar(props) {
     let [member, setMember] = useState({});
     useEffect(() => {
-        const url = `http://localhost:3001/api/users/${props.memberId}`;
+        const url = `http://localhost:3001/api/users/${props.member._id}`;
         axios.get(url).then(res => setMember(res.data)).catch(err => console.log(err));
     }, [])
     return (
         <span className="img-wrap" onClick={() => props.selectThread({_id: member._id, isGroupChat: false}) }>
-            {member && <img alt={member.name} src={member.avatar} />}
+            {member.avatar ? <img alt={member.name} src={member.avatar} /> : <PersonFill className="avatar-icon" size={'1.8rem'} /> }
         </span>
     )
 }

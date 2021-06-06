@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { ThreeDotsVertical, ArrowRightCircleFill, CheckAll, Check2 } from 'react-bootstrap-icons';
+import { ThreeDotsVertical, ArrowRightCircleFill, CheckAll, Check2, PersonFill } from 'react-bootstrap-icons';
 import { connect } from 'react-redux';
 import './ChatWindow.scss';
 import axios from 'axios';
@@ -11,6 +11,8 @@ function ChatWindow(props) {
     let inputFocusRef = useRef();
 
     let [chats, setChats] = useState([]);
+    let [headers, setHeaders] = useState({title: '', avatar: ''});
+
     useEffect(() => {
         getThread();
     }, [props.thread]);
@@ -26,13 +28,28 @@ function ChatWindow(props) {
     }, [props.newThreadChat])
 
     function getThread() {
-        let url = `http://localhost:3001/api/threads/${props.thread._id}`;
+        if (!props.thread || !props.thread._id) {
+            return;
+        }
+        let url = `http://localhost:3001/api/threads/direct/${props.thread._id}`;
         if (props.thread.isGroupChat) {
-            url = `http://localhost:3001/api/groups/${props.thread._id}`;
+            url = `http://localhost:3001/api/threads/group/${props.thread._id}`;
         }
         axios.get(url).then(res => {
-            const temp = props.thread.isGroupChat ? res.data.chats : res.data;
-            setChats(temp);
+            setChats(res.data);
+            if (!res.data.length) {
+                let threadUrl = `http://localhost:3001/api/users/${props.thread._id}`;
+                if (props.thread.isGroupChat) {
+                    threadUrl = `http://localhost:3001/api/groups/${props.thread._id}`;
+                }
+                axios.get(threadUrl).then(({data}) => {
+                    setHeaders({...headers, title: data.name, avatar: data.avatar});
+                }).catch(err => {
+                    console.log(err);
+                });
+            } else {
+                getHeaders(res.data);
+            }
         }).catch(err => {
             console.log(err);
         });
@@ -43,61 +60,53 @@ function ChatWindow(props) {
         inputFocusRef.current.focus();
     }
 
-    function getAvatar() {
-        if (!chats[0]) {
-            return '';
-        }
-        if (props.thread.isGroupChat) {
-            return chats[0].recipient.avatar;
+    function getHeaders(data) {
+        const temp = {title: '', avatar: ''};
+        if (data[0].hasOwnProperty('group')) {
+            temp.avatar = data[0].group.avatar;
+            temp.title = data[0].group.name;
         } else {
-            return chats[0].author._id === props.user._id ? chats[0].recipient.avatar : chats[0].author.avatar;
+            temp.avatar = data[0].author._id === props.user._id ? data[0].recipient.avatar : data[0].author.avatar;
+            temp.title = data[0].author._id === props.user._id ? data[0].recipient.name : data[0].author.name;
         }
+        setHeaders({...temp});
     }
-    function getThreadName() {
-        if (!chats[0]) {
-            return '';
-        }
-        if (props.thread.isGroupChat) {
-            return chats[0].recipient.name;
-        } else {
-            return chats[0].author._id === props.user._id ? chats[0].recipient.name : chats[0].author.name;
-        }
-    }
+
     function submitMessage() {
         if (!inputFocusRef.current.value) {
             console.log('Enter Message!');
             return;
         }
         const payload = {
-            "sentAt": Date.now(),
-            "author": props.user._id,
             "message": inputFocusRef.current.value,
-            "tag": "",
-            "recipient": props.thread._id,
-            "isGroupChat": props.thread.isGroupChat
         };
-        socket.emit("POST_CHAT", payload, (res) => {
-            if (!res || res.error || !res.data) {
-                return;
-            }
-            setChats([...chats, res.data]);
-            inputFocusRef.current.value = '';
-        });
-        // axios.post('http://localhost:3001/api/chats', payload).then(res => {
-        //     console.log(res.data);
+        if (props.thread.isGroupChat) {
+            payload.group = props.thread._id
+        } else {
+            payload.recipient = props.thread._id
+        }
+        // socket.emit("POST_CHAT", payload, (res) => {
+        //     if (!res || res.error || !res.data) {
+        //         return;
+        //     }
+        //     setChats([...chats, res.data]);
         //     inputFocusRef.current.value = '';
-        //     getThread();
-        // }).catch(err => {
-        //     console.error(err);
         // });
+        axios.post('http://localhost:3001/api/chats', payload).then(res => {
+            console.log(res.data);
+            inputFocusRef.current.value = '';
+            getThread();
+        }).catch(err => {
+            console.error(err);
+        });
     }
     return (
             <main className="chat-window">
                 <header>
                     <div className="avatar">
-                        <img alt="profile-img" src={getAvatar()} />
+                        {headers.avatar ? <img alt="profile-img" src={headers.avatar} /> : <PersonFill className="avatar-icon" size={'1.8rem'} />}
                     </div>
-                    <h6>{getThreadName()}</h6>
+                    <h6>{headers.title}</h6>
                     <div className="actions">
                         <ThreeDotsVertical />
                     </div>
@@ -131,7 +140,7 @@ function mapStateToProps(state) {
         user: state.loginReducer.user,
         jwt: state.loginReducer.jwt,
         thread: state.threadReducer,
-        newThreadChat: state.updateChatsReducer
+        newThreadChat: state.threadChatReducer
     };
 }
 function mapDispatchToProps(dispatch) {

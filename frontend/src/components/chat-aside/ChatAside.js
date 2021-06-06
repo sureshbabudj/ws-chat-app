@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { BellFill, GearFill, PeopleFill, PinAngleFill } from 'react-bootstrap-icons';
+import { BellFill, GearFill, PeopleFill, PinAngleFill, PersonFill } from 'react-bootstrap-icons';
 import MemberAvatar from '../member-avatar/MemberAvatar';
 import './ChatAside.scss';
 import axios from 'axios';
@@ -32,7 +32,7 @@ function ChatAside(props) {
             <div className="chat-info-inner">
                 <div className="chat-avatar-wrap">
                     <span className="bg"></span>
-                    <img alt={recipient.name} src={recipient.avatar} />
+                    {recipient.avatar ? <img alt={recipient.name} src={recipient.avatar} /> : <PersonFill className="avatar-icon" size={'1.8rem'} />}
                     <div className="chat-info-content">
                         <h5>{recipient.name}</h5>
                         <p>{recipient.name} is an accountant at the Acme Inc company. {recipient.name} works very hard.</p>
@@ -48,7 +48,7 @@ function ChatAside(props) {
                     {props.thread.isGroupChat ? 
                         (<span>
                             <h5>Members</h5> 
-                            { recipient && recipient.members && recipient.members.map((member, key) => <MemberAvatar key={key} memberId={member} />)}
+                            { recipient && recipient.members && recipient.members.map((member, key) => <MemberAvatar key={key} member={member.member} />)}
                         </span>)
                         :  
                         (<span>

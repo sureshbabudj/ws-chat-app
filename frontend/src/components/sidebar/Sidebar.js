@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { connect } from 'react-redux';
 import { Nav } from 'react-bootstrap';
-import { ChatFill, PeopleFill, GearFill, PersonLinesFill, BookFill, BarChartFill, CameraVideoFill } from 'react-bootstrap-icons';
+import { ChatFill, PeopleFill, GearFill, PersonLinesFill, BookFill, BarChartFill, CameraVideoFill, PersonCircle } from 'react-bootstrap-icons';
 import './Sidebar.scss';
 
 function Sidebar(props) {
@@ -48,7 +48,7 @@ function Sidebar(props) {
                 )}
             </Nav>
             <div className="profile">
-                    <img alt={props.user.name} src={props.user.avatar} />
+                    {props.user.avatar ? <img alt={props.user.name} src={props.user.avatar} /> : <PersonCircle className="avatar-icon" size={'1.8rem'}  />}
             </div>
         </div>
     )

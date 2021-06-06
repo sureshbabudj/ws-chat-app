@@ -1,1 +1,10 @@
 @import '../../variables.scss';
+
+
+.avatar-icon {
+    height: 5rem;
+    width: 5rem;
+    padding: 0.26rem;
+    fill: $white-color;
+    background: $dark-gray-color;
+}

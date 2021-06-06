@@ -12,25 +12,59 @@ function ChatBar(props) {
     let [groups, setGroups] = useState([]);
     
     useEffect(() => {
-        axios.get(`http://localhost:3001/api/threads`)
+        axios.get(`http://localhost:3001/api/threads/direct`)
         .then(res => {
             setChats(res.data);
-            const author = props.user._id === res.data[0].author._id ? res.data[0].recipient : res.data[0].author;
-            const thread = {_id: author._id, isGroupChat: false};
-            props.selectThread(thread);
+            const threads = Object.keys(res.data);
+            if (threads.length) {
+                const thread = {isGroupChat: false, _id: null};
+                const authorId = res.data[threads[0]].length && res.data[threads[0]][0].recipient ? res.data[threads[0]][0].recipient._id : '';
+                const recipientId = res.data[threads[0]].length && res.data[threads[0]][0].recipient ? res.data[threads[0]][0].recipient._id : '';
+                thread._id = authorId === props.user._id ? recipientId : authorId;
+                props.selectThread(thread);
+            }
         })
         .catch(err => {
             console.log(err);
         });
-        axios.get(`http://localhost:3001/api/groups/user/${props.user._id}`)
+        axios.get(`http://localhost:3001/api/threads/group`)
         .then(res => {
-            const groupChats = res.data.map(group => group.chats && group.chats.length ? group.chats[0] : -1);
-            setGroups(groupChats);
+            setGroups(res.data);
         })
         .catch(err => {
             console.log(err);
         });
     }, []);
+
+    useEffect(() => {
+        if (props.groupChat && props.groupChat.isGroupChat) {
+            const temp = [...groups];
+            const groupChatIndex = temp.findIndex(chat => chat.recipient._id === props.groupChat.recipient._id);
+            if (groupChatIndex !== -1) {
+                const tempChat = {...props.groupChat};
+                tempChat.count = temp[groupChatIndex].count || 0;
+                tempChat.count = temp[groupChatIndex].count + 1;
+                temp.splice(groupChatIndex, 1, tempChat);
+                setGroups([...temp]);
+            }
+        }
+    }, [props.groupChat]);
+
+    useEffect(() => {
+        if (props.personalChat && !props.personalChat.isGroupChat) {
+            const temp = {...chats};
+            const threadId = props.user._id === props.personalChat.author._id ? props.personalChat.recipient._id : props.personalChat.author._id;
+            const personalChat = temp[threadId];
+            if (personalChat) {
+                const tempChat = {...props.personalChat};
+                tempChat.count = personalChat.count || 0;
+                tempChat.count = personalChat.count + 1;
+                temp[threadId] = tempChat;
+                setChats({...temp});
+            }
+        }
+        console.log(props.personalChat);
+    }, [props.personalChat]);
 
     return (
         <div className='chat-bar'>
@@ -43,20 +77,20 @@ function ChatBar(props) {
                 <div className="personal-chat">
                     <Tabs defaultActiveKey="all" id="uncontrolled-tab-example">
                         <Tab eventKey="all" title="Recent">
-                            {chats.map((chat, key) => <ChatItem key={key} chat={chat}/>)}
+                            {Object.keys(chats).map((thread, key) => <ChatItem key={key} chat={chats[thread][0]}/>)}
                         </Tab>
                         <Tab eventKey="archived" title="Archived">
-                            {chats.sort(() => Math.random() - 0.5).map((chat, key) => <ChatItem key={key} chat={chat}/>)}
+                            {/* {Object.keys(chats).sort(() => Math.random() - 0.5).map((chat, key) => <ChatItem key={key} chat={chats[chat]}/>)} */}
                         </Tab>
                         <Tab eventKey="starred" title="Starred">
-                            {chats.sort(() => Math.random() - 0.5).map((chat, key) => <ChatItem key={key} chat={chat}/>)}
+                            {/* {Object.keys(chats).sort(() => Math.random() - 0.5).map((chat, key) => <ChatItem key={key} chat={chats[chat]}/>)} */}
                         </Tab>
                     </Tabs>
                 </div>
                 <div className="groups-chat">
                     <h6>Groups</h6>
                     <div className="groups-chat-inner">
-                        {groups && groups.length && groups.map((chat, key) => <ChatItem key={key} chat={chat}/>)}
+                        {Object.keys(groups).map((thread, key) => <ChatItem key={key} chat={groups[thread][0]}/>)}
                     </div>
                 </div>
             </div>
@@ -66,7 +100,9 @@ function ChatBar(props) {
 
 function mapStateToProps(state) {
     return {
-        user: state.loginReducer.user
+        user: state.loginReducer.user,
+        groupChat: state.groupChatReducer,
+        personalChat: state.personalChatReducer
     };
 }
 function mapDispatchToProps(dispatch) {

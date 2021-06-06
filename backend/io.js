@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
 });
 
 // routes
-const authRoute = require('./routes/auth_dummy');
+const authRoute = require('./routes/auth');
 app.use('/api/auth', authRoute);
 
 const usersRoute = require('./routes/users');
@@ -34,9 +34,9 @@ const chatsRoute = require('./routes/chats');
 app.use('/api/chats', chatsRoute);
 
 // DB connection
-// mongoose.connect(process.env.DATABASE_CONNECTION, { useUnifiedTopology: true, useNewUrlParser: true }, () => {
-//     console.log('DB is connected!');
-// });
+mongoose.connect(process.env.DATABASE_CONNECTION, { useUnifiedTopology: true, useNewUrlParser: true }, () => {
+    console.log('DB is connected!');
+});
 
 const httpServer = http.createServer(app);
 const io = require("socket.io")(httpServer, {
@@ -50,17 +50,22 @@ const jwt = require('jsonwebtoken');
 const db = require('./mock/db.json');
 const generateChats = require('./mock/util').generateChats;
 const clients = {};
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   try {
     // check token validity
-    socket.user = jwt.verify(socket.handshake.query.jwt, process.env.TOKEN_SECRET);
+    const jwtUserDecoded = jwt.verify(socket.handshake.query.jwt, process.env.TOKEN_SECRET);
+    socket.user = await db.users.find(user => jwtUserDecoded._id === user._id);
+    socket.user.groups.forEach(group => {
+      socket.join(group);
+      io.in(group).emit(`WELCOME`, `Hi, I (${socket.user.name}) have joined the ${group}`);
+    });
     clients[socket.user._id] = socket.id;
     console.log( socket.user);
   } catch (error) {
     socket.emit("Error", 'Auth Error');
     socket.disconnect();
     console.log('disconnected!');
-}
+  }
   socket.on("POST_CHAT", async (chatItem, callback) => {
     try {
         const chat = generateChats(chatItem, socket);
@@ -69,7 +74,7 @@ io.on("connection", (socket) => {
         compiled.author = socket.user;        
         if (!chat.isGroupChat) {
           compiled.recipient = await db.users.find(user => chat.recipient === user._id);
-          const isClientOnline = Object.keys(clients).find(client => client === recipient._id);
+          const isClientOnline = Object.keys(clients).find(client => client === compiled.recipient._id);
           if (isClientOnline) {
             socket.to(clients[isClientOnline]).emit('NEW_CHAT', compiled);
           }

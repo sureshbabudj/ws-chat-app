@@ -1,12 +1,12 @@
-@import '../../variables.scss';
+@import "../../variables.scss";
 
 .search {
     .search-wrap {
         margin: 0 0.5rem;
-        padding: .5rem;
+        padding: 0.5rem;
         border-radius: 50%;
-        background-color:$light-gray-color;
-        line-height: .5rem;
+        background-color: $light-gray-color;
+        line-height: 0.5rem;
         cursor: pointer;
         &:hover {
             color: $white-color;
@@ -21,11 +21,11 @@
         left: 0;
         top: 1.3rem;
         margin: 0;
-        padding: 0 .5rem;
+        padding: 0 0.5rem;
         line-height: 1rem;
         font-size: 1rem;
         color: $body-font-color;
-        .input-group  {
+        .input-group {
             background-color: $white-color;
             margin-bottom: 0 !important;
             svg.close-icon {
@@ -50,13 +50,21 @@
                         margin: 0.2rem;
                         max-width: 3rem;
                     }
+                    .avatar-icon {
+                        padding: 0.35rem;
+                        height: 2.65rem;
+                        width: 2.65rem;
+                        border-radius: 50%;
+                        fill: $white-color;
+                        background: $dark-gray-color;
+                    }
                     .result-name {
                         flex: 1 0 60%;
                         padding: 0 0.5rem;
                         text-overflow: ellipsis;
                         overflow: hidden;
                         white-space: nowrap;
-                    }       
+                    }
                 }
             }
         }

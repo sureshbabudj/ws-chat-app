@@ -33,12 +33,23 @@
         align-content: center;
         justify-content: space-between;
         align-items: baseline;
+        > h6 {
+            margin: 0;
+        }
         .avatar {
             margin-right: 1rem;
             img {
                 object-fit: contain;
                 width: 2rem;
                 border-radius: 50%;
+            }
+            .avatar-icon {
+                padding: 0.35rem;
+                height: 2.15rem;
+                width: 2.15rem;
+                border-radius: 50%;
+                fill: $white-color;
+                background: $dark-gray-color;
             }
         }
         .actions {

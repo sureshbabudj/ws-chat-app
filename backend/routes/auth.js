@@ -44,16 +44,16 @@ router.post('/login', async (req, res) => {
             if (!isPasswordValid) return res.status(400).send({ message: 'Invalid password!' });
             
             // assign jwt  TODO: PROCESS REFRESH_TOKEN_SECRET to renew the access token 
-            const matchedUser = {
+            const resUser = {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 avatar: user.avatar
             };
-            const token = jwt.sign({_id: user._id}, process.env.TOKEN_SECRET, {expiresIn: 1800});
+            const token = jwt.sign(resUser, process.env.TOKEN_SECRET, {expiresIn: 7200});
             res.header('Access-Control-Expose-Headers', '*');
             res.header('Access-Control-Allow-Headers', '*');
-            res.header('Authorization', token).send({user: matchedUser});
+            res.header('Authorization', token).send(user);
         }
     } catch (error) {
         res.status(400).send({ message: error });

@@ -87,6 +87,18 @@
                 border-radius: 50%;
                 border: 3px solid $aside-bg-color;
             }
+            .avatar-icon {
+                object-fit: contain;
+                position: relative;
+                border-radius: 50%;
+                border: 3px solid $aside-bg-color;
+                padding: 0.35rem;
+                height: 5.65rem;
+                width: 5.65rem;
+                border-radius: 50%;
+                fill: $white-color;
+                background: $dark-gray-color;
+            }
             .chat-info-content {
                 margin-top: 0.75rem;
             }
