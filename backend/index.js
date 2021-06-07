@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
 const mongoose = require('mongoose');
 require('dotenv/config');
 
@@ -14,7 +15,7 @@ app.get('/', (req, res) => {
 });
 
 // routes
-const authRoute = require('./routes/auth_dummy');
+const authRoute = require('./routes/auth');
 app.use('/api/auth', authRoute);
 
 const usersRoute = require('./routes/users');
@@ -33,9 +34,17 @@ const chatsRoute = require('./routes/chats');
 app.use('/api/chats', chatsRoute);
 
 // DB connection
-// mongoose.connect(process.env.DATABASE_CONNECTION, { useUnifiedTopology: true, useNewUrlParser: true }, () => {
-//     console.log('DB is connected!');
-// });
+mongoose.connect(process.env.DATABASE_CONNECTION, { useUnifiedTopology: true, useNewUrlParser: true }, () => {
+    console.log('DB is connected!');
+});
+
+const httpServer = http.createServer(app);
+const socketFn = require('./utils/io').socketFn;
+socketFn(httpServer);
+
 
 const PORT = process.env.port || 3001;
-app.listen(PORT, () => console.log(`App is served via port ${PORT}`));
+
+httpServer.listen(PORT, function () {
+    console.log('Express server listening on port ' + PORT)
+});
