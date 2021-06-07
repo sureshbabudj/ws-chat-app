@@ -85,20 +85,24 @@ function ChatWindow(props) {
         } else {
             payload.recipient = props.thread._id
         }
-        // socket.emit("POST_CHAT", payload, (res) => {
-        //     if (!res || res.error || !res.data) {
-        //         return;
-        //     }
-        //     setChats([...chats, res.data]);
-        //     inputFocusRef.current.value = '';
-        // });
-        axios.post('http://localhost:3001/api/chats', payload).then(res => {
+        socket.emit("POST_CHAT", payload, (res) => {
+            if (!res) {
+                return;
+            }
+            if (res.error) {
+                console.log(res.error);
+                return;
+            }
+            setChats([...chats, res.data]);
+            inputFocusRef.current.value = '';
+        });
+        /***  axios.post('http://localhost:3001/api/chats', payload).then(res => {
             console.log(res.data);
             inputFocusRef.current.value = '';
             getThread();
         }).catch(err => {
             console.error(err);
-        });
+        }); **/
     }
     return (
             <main className="chat-window">

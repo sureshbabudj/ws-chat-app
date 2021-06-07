@@ -40,10 +40,19 @@ function SearchBar(props) {
         if (result.members && result.members.length) {
             isGroupChat = true;
             if (!result.members.includes(props.user._id)) {
-                console.log('user is not part of group');
-                return;
+                axios.post(`http://localhost:3001/api/groups/${result._id}/join`).then(({data}) => {
+                    console.log(data);
+                    doChangeThread(data, isGroupChat);
+                }).catch(err => {
+                    console.log(err);
+                });
             }
+        } else {
+            doChangeThread(result, isGroupChat);
         }
+    }
+
+    function doChangeThread(result, isGroupChat) {
         const thread = {_id: result._id, isGroupChat};
         searchRef.current.value = '';
         setAutoCompleteItems([]);

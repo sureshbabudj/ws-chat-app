@@ -40,7 +40,6 @@ router.get('/group', verifyToken, async (req, res) => {
     try {
         const groups = req.user.groups.map(i => i.group.toString());
         const query = {
-            author: req.user.id,
             group: { $exists: true, $in: groups },
             sentAt: { 
                 $gt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)  // 2 day filter 
@@ -48,6 +47,7 @@ router.get('/group', verifyToken, async (req, res) => {
          };
         const chats = await Chat.find(query).populate('group author', '_id name avatar');
         const threads = {};
+        groups.forEach(i => threads[i] = []);
         chats.forEach(chat => {
             const group = chat.group._id.toString();
             threads[group] = threads[group] || [];
@@ -72,7 +72,7 @@ router.get('/direct/:friendId', verifyToken, async (req, res) => {
                 { $and: [{author: friend._id}, {recipient: req.user._id}] }
             ],
             sentAt: {
-                $gt: new Date(Date.now() - 24 * 60 * 60 * 1000)  // 1 day filter
+                $gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)  // 3 day filter
             }
         };
 
@@ -96,7 +96,7 @@ router.get('/group/:groupId', verifyToken, async (req, res) => {
         const query = { 
             group: group._id,
             sentAt: {
-                $gt: new Date(Date.now() - 24 * 60 * 60 * 1000)  // 1 day filter
+                $gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)  // 3 day filter
             }
         };
 

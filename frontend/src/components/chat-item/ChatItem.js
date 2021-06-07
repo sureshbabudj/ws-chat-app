@@ -23,7 +23,7 @@ function ChatItem({chat, user, selectThread, groups, persons}) {
             <div className="chat-item-content">
                 <div className="chat-item-extras">
                     {chatData.name && <span className="chat-item-author">{chatData._id === user._id ? `me (${chatData.name})` : chatData.name}</span>}
-                    <span className="chat-item-time">{timeSince(new Date(chat.sentAt))} ago</span>
+                    { chat.sentAt && <span className="chat-item-time">{timeSince(new Date(chat.sentAt))} ago</span>}
                 </div>
                 <div className="chat-item-msg">
                     <div className="chat-item-msg-inner">

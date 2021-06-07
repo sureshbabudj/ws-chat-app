@@ -11,7 +11,7 @@ function MemberAvatar(props) {
         axios.get(url).then(res => setMember(res.data)).catch(err => console.log(err));
     }, [])
     return (
-        <span className="img-wrap" onClick={() => props.selectThread({_id: member._id, isGroupChat: false}) }>
+        <span className="member-avatar img-wrap" onClick={() => props.selectThread({_id: member._id, isGroupChat: false}) }>
             {member.avatar ? <img alt={member.name} src={member.avatar} /> : <PersonFill className="avatar-icon" size={'1.8rem'} /> }
         </span>
     )

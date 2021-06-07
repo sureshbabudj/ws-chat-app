@@ -49,39 +49,43 @@ const jwt = require('jsonwebtoken');
 // TODO: replace actual db
 const db = require('./mock/db.json');
 const generateChats = require('./mock/util').generateChats;
+const {User} = require('./model/User');
+const {Chat} = require('./model/Chat');
+const postChat = require('./utils/postChat').postChat;
 const clients = {};
-io.on("connection", async (socket) => {
+io.on("connection", async function (socket) {
   try {
     // check token validity
     const jwtUserDecoded = jwt.verify(socket.handshake.query.jwt, process.env.TOKEN_SECRET);
-    socket.user = await db.users.find(user => jwtUserDecoded._id === user._id);
+    socket.user = await User.findOne({_id: jwtUserDecoded._id});
+    socket.groupIds = [];
     socket.user.groups.forEach(group => {
-      socket.join(group);
-      io.in(group).emit(`WELCOME`, `Hi, I (${socket.user.name}) have joined the ${group}`);
+      const groupId = group.group._id.toString();
+      socket.join(groupId);
+      io.in(groupId).emit(`WELCOME`, `Hi, I (${socket.user.name}) have joined the ${groupId}`);
+      socket.groupIds.push(groupId);
     });
-    clients[socket.user._id] = socket.id;
-    console.log( socket.user);
+    socket.userId = socket.user._id.toString();
+    clients[socket.userId] = socket.id;
+    console.log(clients);
   } catch (error) {
     socket.emit("Error", 'Auth Error');
     socket.disconnect();
     console.log('disconnected!');
   }
-  socket.on("POST_CHAT", async (chatItem, callback) => {
+  socket.on("POST_CHAT", async function(chatItem, callback) {
     try {
-        const chat = generateChats(chatItem, socket);
-        await db.chats.push(chat);
-        const compiled = JSON.parse(JSON.stringify(chat));
-        compiled.author = socket.user;        
-        if (!chat.isGroupChat) {
-          compiled.recipient = await db.users.find(user => chat.recipient === user._id);
-          const isClientOnline = Object.keys(clients).find(client => client === compiled.recipient._id);
+        const chat = await postChat({body: chatItem, user: socket.user});
+        const compiled = await Chat.findOne({_id: chat._id}).populate('recipient author group', '_id name avatar');    
+        if (!chat.toObject().hasOwnProperty('group')) {
+          const isClientOnline = Object.keys(clients).find(client => client === compiled.recipient._id.toString());
           if (isClientOnline) {
             socket.to(clients[isClientOnline]).emit('NEW_CHAT', compiled);
           }
           callback({data: compiled});
         } else {
-          compiled.recipient = await db.groups.find(group => chat.recipient === group._id);
-          io.in(compiled.recipient._id).emit('NEW_CHAT', compiled);
+          const groupId = compiled.group._id.toString();
+          io.in(groupId).emit('NEW_CHAT', compiled);
           callback({data: compiled});
         }
     } catch (error) {

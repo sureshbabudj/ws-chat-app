@@ -8,58 +8,105 @@ import Search from '../search/Search';
 
 function ChatBar(props) {
 
-    let [chats, setChats] = useState([]);;
-    let [groups, setGroups] = useState([]);
+    let [chats, setChats] = useState({});;
+    let [groups, setGroups] = useState({});
+    let [directReady, setDirectReady] = useState(false);
+    let [groupReady, setGroupReady] = useState(false);
     
     useEffect(() => {
         axios.get(`http://localhost:3001/api/threads/direct`)
         .then(res => {
-            setChats(res.data);
-            const threads = Object.keys(res.data);
+            const data = res.data;
+            const threads = Object.keys(data);
             if (threads.length) {
                 const thread = {isGroupChat: false, _id: null};
-                const authorId = res.data[threads[0]].length && res.data[threads[0]][0].recipient ? res.data[threads[0]][0].recipient._id : '';
-                const recipientId = res.data[threads[0]].length && res.data[threads[0]][0].recipient ? res.data[threads[0]][0].recipient._id : '';
+                const authorId = data[threads[0]].length && data[threads[0]][0].recipient ? data[threads[0]][0].recipient._id : '';
+                const recipientId = data[threads[0]].length && data[threads[0]][0].recipient ? data[threads[0]][0].recipient._id : '';
                 thread._id = authorId === props.user._id ? recipientId : authorId;
                 props.selectThread(thread);
             }
+            setChats(data);
+            setDirectReady(true);
         })
         .catch(err => {
             console.log(err);
         });
+        
         axios.get(`http://localhost:3001/api/threads/group`)
-        .then(res => {
-            setGroups(res.data);
-        })
-        .catch(err => {
-            console.log(err);
-        });
+            .then(res => {
+                initializeData(res.data).then(data => {
+                    setGroups(data);
+                    setGroupReady(true);
+                }, err => {
+                    console.log(err);
+                });
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }, []);
 
+    function initializeData(data) {
+        return new Promise((resolve, reject) => {
+            const threads = Object.keys(data);
+            const promises = [];
+            threads.forEach(thread => {
+                if (!data[thread].length) {
+                    promises.push(axios.get(`http://localhost:3001/api/groups/${thread}`));
+                }
+            });
+
+            Promise.all(promises).then((values) => {
+                values.forEach(val => {
+                    if (val.status === 200) {
+                        data[val.data._id].push( {
+                            author: {
+                                _id : props.user._id,
+                                name: props.user.name
+                            },
+                            group: {
+                                _id: val.data._id,
+                                name: val.data.name
+                            }
+                        });
+                    }
+                });
+                resolve(data);
+            });
+        });
+    }
+
     useEffect(() => {
-        if (props.groupChat && props.groupChat.isGroupChat) {
-            const temp = [...groups];
-            const groupChatIndex = temp.findIndex(chat => chat.recipient._id === props.groupChat.recipient._id);
-            if (groupChatIndex !== -1) {
+        if (props.groupChat && props.groupChat.hasOwnProperty('group')) {
+            const temp = {...groups};
+            const groupId = props.groupChat.group._id;
+            if (temp.hasOwnProperty(groupId)) {
                 const tempChat = {...props.groupChat};
-                tempChat.count = temp[groupChatIndex].count || 0;
-                tempChat.count = temp[groupChatIndex].count + 1;
-                temp.splice(groupChatIndex, 1, tempChat);
-                setGroups([...temp]);
+                tempChat.count = 0;
+                const length = temp[groupId].length;
+                if (length) {
+                    tempChat.count = temp[groupId][length-1].count || 0;
+                    tempChat.count = tempChat.count + 1;
+                }
+                temp[groupId].push(tempChat);
+                setGroups({...temp});
             }
         }
     }, [props.groupChat]);
 
     useEffect(() => {
-        if (props.personalChat && !props.personalChat.isGroupChat) {
+        if (props.personalChat && !props.personalChat.hasOwnProperty('group')) {
             const temp = {...chats};
             const threadId = props.user._id === props.personalChat.author._id ? props.personalChat.recipient._id : props.personalChat.author._id;
-            const personalChat = temp[threadId];
-            if (personalChat) {
+            if (temp.hasOwnProperty(threadId)) {
                 const tempChat = {...props.personalChat};
-                tempChat.count = personalChat.count || 0;
-                tempChat.count = personalChat.count + 1;
-                temp[threadId] = tempChat;
+                tempChat.count = 0;
+                const length = temp[threadId].length;
+                if (length) {
+                    tempChat.count = temp[threadId][length-1].count || 0;
+                    tempChat.count = tempChat.count + 1;
+                }
+                temp[threadId].push(tempChat);
                 setChats({...temp});
             }
         }
@@ -74,10 +121,10 @@ function ChatBar(props) {
                 <Search />
             </h5>
             <div className="chat-bar-inner">
-                <div className="personal-chat">
+                {directReady && <div className="personal-chat">
                     <Tabs defaultActiveKey="all" id="uncontrolled-tab-example">
                         <Tab eventKey="all" title="Recent">
-                            {Object.keys(chats).map((thread, key) => <ChatItem key={key} chat={chats[thread][0]}/>)}
+                            {Object.keys(chats).map((thread, key) => <ChatItem key={key} chat={chats[thread][chats[thread].length-1]}/>)}
                         </Tab>
                         <Tab eventKey="archived" title="Archived">
                             {/* {Object.keys(chats).sort(() => Math.random() - 0.5).map((chat, key) => <ChatItem key={key} chat={chats[chat]}/>)} */}
@@ -86,13 +133,13 @@ function ChatBar(props) {
                             {/* {Object.keys(chats).sort(() => Math.random() - 0.5).map((chat, key) => <ChatItem key={key} chat={chats[chat]}/>)} */}
                         </Tab>
                     </Tabs>
-                </div>
-                <div className="groups-chat">
+                </div>}
+                {groupReady && <div className="groups-chat">
                     <h6>Groups</h6>
                     <div className="groups-chat-inner">
-                        {Object.keys(groups).map((thread, key) => <ChatItem key={key} chat={groups[thread][0]}/>)}
+                        {Object.keys(groups).map((thread, key) => <ChatItem key={key} chat={groups[thread][groups[thread].length-1]}/>)}
                     </div>
-                </div>
+                </div>}
             </div>
         </div>
     )
