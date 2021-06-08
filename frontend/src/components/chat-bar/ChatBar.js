@@ -5,6 +5,8 @@ import { Tab, Tabs } from 'react-bootstrap';
 import ChatItem from '../chat-item/ChatItem';
 import './ChatBar.scss';
 import Search from '../search/Search';
+import { PlusCircleFill } from 'react-bootstrap-icons';
+import CreateGroup from '../create-group/CreateGroup';
 
 function ChatBar(props) {
 
@@ -12,6 +14,7 @@ function ChatBar(props) {
     let [groups, setGroups] = useState({});
     let [directReady, setDirectReady] = useState(false);
     let [groupReady, setGroupReady] = useState(false);
+    let [showGroupModal, setShowGroupModal] = useState(false);
     
     useEffect(() => {
         axios.get(`http://localhost:3001/api/threads/direct`)
@@ -29,7 +32,7 @@ function ChatBar(props) {
             setDirectReady(true);
         })
         .catch(err => {
-            console.log(err);
+            props.sendToast({msg: err, autohide: false, type: 'error'});
         });
         
         axios.get(`http://localhost:3001/api/threads/group`)
@@ -38,11 +41,11 @@ function ChatBar(props) {
                     setGroups(data);
                     setGroupReady(true);
                 }, err => {
-                    console.log(err);
+                    props.sendToast({msg: err, autohide: false, type: 'error'});
                 });
             })
             .catch(err => {
-                console.log(err);
+                props.sendToast({msg: err, autohide: false, type: 'error'});
             });
     }, []);
 
@@ -90,6 +93,7 @@ function ChatBar(props) {
                 }
                 temp[groupId].push(tempChat);
                 setGroups({...temp});
+                props.sendToast({msg: `You have got a new message in group ${props.groupChat.group.name}`, autohide: true, type: 'info'});
             }
         }
     }, [props.groupChat]);
@@ -98,20 +102,62 @@ function ChatBar(props) {
         if (props.personalChat && !props.personalChat.hasOwnProperty('group')) {
             const temp = {...chats};
             const threadId = props.user._id === props.personalChat.author._id ? props.personalChat.recipient._id : props.personalChat.author._id;
-            if (temp.hasOwnProperty(threadId)) {
-                const tempChat = {...props.personalChat};
-                tempChat.count = 0;
-                const length = temp[threadId].length;
-                if (length) {
-                    tempChat.count = temp[threadId][length-1].count || 0;
-                    tempChat.count = tempChat.count + 1;
-                }
-                temp[threadId].push(tempChat);
-                setChats({...temp});
+            temp[threadId] = temp[threadId] || [];
+            const tempChat = {...props.personalChat};
+            tempChat.count = 0;
+            const length = temp[threadId].length;
+            if (length) {
+                tempChat.count = temp[threadId][length-1].count || 0;
+                tempChat.count = tempChat.count + 1;
             }
+            temp[threadId].push(tempChat);
+            setChats({...temp});
+            props.sendToast({msg: `You have got a new message from ${props.personalChat.author.name}`, autohide: true, type: 'info'});
         }
-        console.log(props.personalChat);
     }, [props.personalChat]);
+
+    useEffect(() => {
+        if(!props.newGroup || !props.newGroup._id || groups.hasOwnProperty(props.newGroup._id)) {
+            return;
+        }
+        const temp = {...groups};
+        temp[props.newGroup._id] = [{
+            author: {
+                _id : props.user._id,
+                name: props.user.name
+            },
+            group: {
+                _id: props.newGroup._id,
+                name: props.newGroup.name
+            }
+        }];
+        setGroups({...temp});
+        const thread = {isGroupChat: true, _id: props.newGroup._id};
+        props.selectThread(thread);
+    }, [props.newGroup]);
+
+    useEffect(() => {
+        if(!props.newContact || !props.newContact._id || chats.hasOwnProperty(props.newContact._id)) {
+            return;
+        }
+        const temp = {...chats};
+        temp[props.newContact._id] = [{
+            author: {
+                _id : props.user._id,
+                name: props.user.name
+            },
+            recipient: {
+                _id: props.newContact._id,
+                name: props.newContact.name
+            }
+        }];
+        setChats({...temp});
+        const thread = {isGroupChat: false, _id: props.newContact._id};
+        props.selectThread(thread);
+
+        // clear the new contact state
+        props.clearNewContact();
+    }, [props.newContact]);
 
     return (
         <div className='chat-bar'>
@@ -135,12 +181,17 @@ function ChatBar(props) {
                     </Tabs>
                 </div>}
                 {groupReady && <div className="groups-chat">
-                    <h6>Groups</h6>
+                    <h6>
+                        <span className="title">Groups</span> 
+                        <PlusCircleFill onClick={() => setShowGroupModal(true)} />
+                    </h6>
                     <div className="groups-chat-inner">
                         {Object.keys(groups).map((thread, key) => <ChatItem key={key} chat={groups[thread][groups[thread].length-1]}/>)}
                     </div>
                 </div>}
             </div>
+
+            <CreateGroup show={showGroupModal} handleClose={setShowGroupModal} />
         </div>
     )
 }
@@ -149,12 +200,16 @@ function mapStateToProps(state) {
     return {
         user: state.loginReducer.user,
         groupChat: state.groupChatReducer,
-        personalChat: state.personalChatReducer
+        personalChat: state.personalChatReducer,
+        newGroup: state.newEntityReducer.group,
+        newContact: state.newEntityReducer.contact,
     };
 }
 function mapDispatchToProps(dispatch) {
     return {
-        selectThread: (thread) => dispatch({type:'SET_THREAD', data: {thread}})
+        selectThread: (thread) => dispatch({type:'SET_THREAD', data: {thread}}),
+        clearNewContact: () => dispatch({type: 'NEW_CONTACT', data: {contact: null}}),
+        sendToast: (toast) => dispatch({type: 'NEW_TOAST', data: {toast}})
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(ChatBar);  

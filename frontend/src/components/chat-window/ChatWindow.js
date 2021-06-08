@@ -45,13 +45,13 @@ function ChatWindow(props) {
                 axios.get(threadUrl).then(({data}) => {
                     setHeaders({...headers, title: data.name, avatar: data.avatar});
                 }).catch(err => {
-                    console.log(err);
+                    props.sendToast({msg: err, autohide: false, type: 'error'});
                 });
             } else {
                 getHeaders(res.data);
             }
         }).catch(err => {
-            console.log(err);
+            props.sendToast({msg: err, autohide: false, type: 'error'});
         });
     }
 
@@ -74,7 +74,7 @@ function ChatWindow(props) {
 
     function submitMessage() {
         if (!inputFocusRef.current.value) {
-            console.log('Enter Message!');
+            props.sendToast({msg: 'Enter Message!', autohide: true, type: 'warning'});
             return;
         }
         const payload = {
@@ -90,18 +90,17 @@ function ChatWindow(props) {
                 return;
             }
             if (res.error) {
-                console.log(res.error);
+                props.sendToast({msg: res.err, autohide: false, type: 'error'});
                 return;
             }
             setChats([...chats, res.data]);
             inputFocusRef.current.value = '';
         });
         /***  axios.post('http://localhost:3001/api/chats', payload).then(res => {
-            console.log(res.data);
             inputFocusRef.current.value = '';
             getThread();
         }).catch(err => {
-            console.error(err);
+            props.sendToast({msg: err, autohide: false, type: 'error'});
         }); **/
     }
     return (
@@ -148,6 +147,8 @@ function mapStateToProps(state) {
     };
 }
 function mapDispatchToProps(dispatch) {
-    return {}
+    return {
+        sendToast: (toast) => dispatch({type: 'NEW_TOAST', data: {toast}})
+    }
 }
-export default connect(mapStateToProps)(ChatWindow);  
+export default connect(mapStateToProps, mapDispatchToProps)(ChatWindow);  

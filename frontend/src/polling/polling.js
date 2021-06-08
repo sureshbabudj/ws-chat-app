@@ -4,8 +4,11 @@ import store from '../store';
 
 store.subscribe(listener)
 
-let thread, user;
+let thread, user, newGroup;
 
+function selectNewGroup(state) {
+    return state.newEntityReducer.group
+}
 function selectUser(state) {
     return state.loginReducer.user;
 }
@@ -15,8 +18,10 @@ function selectThread(state) {
 function listener() {
     user = selectUser(store.getState());
     thread = selectThread(store.getState());
-    console.log(user);
-    console.log(thread);
+    newGroup = selectNewGroup(store.getState());
+    if (newGroup && newGroup._id) {
+        joinGroup(newGroup._id)
+    }
 }
 
 socket.on('NEW_CHAT', (chatItem) => {
@@ -51,15 +56,26 @@ socket.on('NEW_CHAT', (chatItem) => {
     }
 });
 
-function Polling(props) {
-    socket.on('WELCOME', (msg) => {
-        console.log(msg);
-    });
+socket.on('WELCOME', (msg) => {
+    store.dispatch({type: 'NEW_TOAST', data: {toast: {msg, autohide: true, type: 'info'} }})
+});
 
+function joinGroup(groupId) {
+    socket.emit('JOIN_GROUP', groupId, (data) => {
+        store.dispatch({type: 'NEW_TOAST', data: {toast: {msg: 'You can start messaging in the group', autohide: true, type: 'info'} }})
+        const action = { 
+            type: 'NEW_GROUP',
+            data: { group: null } 
+        };
+        store.dispatch(action);
+    });
+}
+
+
+function Polling() {
     return (
         <div />
     )
 }
-
 
 export default Polling;

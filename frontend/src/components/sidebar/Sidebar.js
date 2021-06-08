@@ -1,11 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { connect } from 'react-redux';
-import { Nav } from 'react-bootstrap';
+import { Nav, Overlay, Tooltip } from 'react-bootstrap';
 import { ChatFill, PeopleFill, GearFill, PersonLinesFill, BookFill, BarChartFill, CameraVideoFill, PersonCircle } from 'react-bootstrap-icons';
 import './Sidebar.scss';
 
 function Sidebar(props) {
-    const [menus, setMenus] = useState([
+
+    const [myAvatarTooltipShow, setMyAvatarTooltipShow] = useState(false);
+    const myAvatar = useRef();
+    const menus = [
         {
             name: 'Groups',
             route: '/groups',
@@ -31,7 +34,7 @@ function Sidebar(props) {
             route: '/video',
             icon: <CameraVideoFill size={'1.5rem'} />
         }
-    ]);
+    ];
 
     return (
         <div className="sidebar">
@@ -47,9 +50,14 @@ function Sidebar(props) {
                     </Nav.Item>
                 )}
             </Nav>
-            <div className="profile">
+            <div className="profile" ref={myAvatar} onMouseEnter={() => setMyAvatarTooltipShow(true)} onMouseLeave={() => setMyAvatarTooltipShow(false)}>
                     {props.user.avatar ? <img alt={props.user.name} src={props.user.avatar} /> : <PersonCircle className="avatar-icon" size={'1.8rem'}  />}
             </div>
+            <Overlay target={myAvatar.current} show={myAvatarTooltipShow} placement="right">
+                <Tooltip id="my-avatar-overlay"  >
+                    {props.user.name}
+                </Tooltip>
+            </Overlay>
         </div>
     )
 }

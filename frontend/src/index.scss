@@ -1,5 +1,18 @@
-@import "~bootstrap/scss/bootstrap";
 @import './variables.scss';
+
+
+// Your variable overrides
+$body-bg: $white-color;
+$body-color:#141414;
+
+$theme-colors: (
+  "primary": $primary-color,
+  "danger": $secondary-color
+);
+
+// Bootstrap and its default variables
+@import "node_modules/bootstrap/scss/bootstrap";
+
 
 html, body {
   font-size: 10.5px;

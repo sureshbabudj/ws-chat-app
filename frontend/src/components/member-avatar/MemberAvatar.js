@@ -8,7 +8,11 @@ function MemberAvatar(props) {
     let [member, setMember] = useState({});
     useEffect(() => {
         const url = `http://localhost:3001/api/users/${props.member._id}`;
-        axios.get(url).then(res => setMember(res.data)).catch(err => console.log(err));
+        axios.get(url).then(res => {
+            setMember(res.data);
+        }).catch(err => {
+            props.sendToast({msg: err, autohide: false, type: 'error'});
+        });
     }, [])
     return (
         <span className="member-avatar img-wrap" onClick={() => props.selectThread({_id: member._id, isGroupChat: false}) }>
@@ -25,7 +29,8 @@ function mapStateToProps(state) {
 }
 function mapDispatchToProps(dispatch) {
     return {
-        selectThread: (thread) => dispatch({type:'SET_THREAD', data: {thread}})
+        selectThread: (thread) => dispatch({type:'SET_THREAD', data: {thread}}),
+        sendToast: (toast) => dispatch({type: 'NEW_TOAST', data: {toast}})
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(MemberAvatar);  

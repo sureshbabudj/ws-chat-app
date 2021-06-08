@@ -25,13 +25,11 @@ function LoginForm(props) {
 
     function login(values, form) {
         axios.post('http://localhost:3001/api/auth/login', values).then(res => {
-            console.log(res);
             form.resetForm();
             setNotify({state:'success', text:'User has logged In!',  show: true});
             props.loggedIn({user: res.data, jwt: res.headers['authorization']});
             history.push('./');
         }).catch(err => {
-            console.log(err);
             setNotify({state:'danger', text:err.response.data.message, show: true});
         })
     }

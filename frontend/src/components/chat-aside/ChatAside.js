@@ -19,7 +19,11 @@ function ChatAside(props) {
         if (props.thread.isGroupChat) {
             url = `http://localhost:3001/api/groups/${props.thread._id}`;
         }
-        axios.get(url).then(res => setRecipient(res.data)).catch(err => console.log(err));
+        axios.get(url).then(res => {
+            setRecipient(res.data);
+        }).catch(err => {
+            props.sendToast({msg: err, autohide: true, type: 'error'});
+        });
     }, [props.thread]);
 
     return (
@@ -84,7 +88,9 @@ function mapStateToProps(state) {
     };
 }
 function mapDispatchToProps(dispatch) {
-    return {}
+    return {
+        sendToast: (toast) => dispatch({type: 'NEW_TOAST', data: {toast}})
+    }
 }
-export default connect(mapStateToProps)(ChatAside);  
+export default connect(mapStateToProps, mapDispatchToProps)(ChatAside);  
 

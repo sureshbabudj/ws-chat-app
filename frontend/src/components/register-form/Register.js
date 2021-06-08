@@ -27,11 +27,9 @@ export default function Register() {
 
     function register(values, form) {
         axios.post('http://localhost:3001/api/auth/register', values).then(res => {
-            console.log(res);
             form.resetForm();
             setNotify({state:'success', text:'Welcome to Chat!',  show: true});
         }).catch(err => {
-            console.log(err);
             setNotify({state:'danger', text:err.response.data.message, show: true});
         })
     }

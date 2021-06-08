@@ -31,8 +31,9 @@ const socketFn = async function(httpServer) {
         } catch (error) {
             socket.emit("Error", 'Auth Error');
             socket.disconnect();
-            console.log('disconnected!');
+            console.log("Client disconnected: " + socket.userId);
         }
+
         socket.on("POST_CHAT", async function (chatItem, callback) {
             try {
                 const chat = await postChat({ body: chatItem, user: socket.user });
@@ -53,7 +54,7 @@ const socketFn = async function(httpServer) {
             }
         });
 
-        socket.on("JOIN_GROUP", async (groupId, callback) => {
+        socket.on("JOIN_GROUP", async function (groupId, callback) {
             try {
                 const group = await Group.findOne({_id: groupId});
                 if (group) {
@@ -69,7 +70,13 @@ const socketFn = async function(httpServer) {
         });
 
         socket.on("disconnect", () => {
-            console.log("Client disconnected");
+            try {
+                delete clients[socket.userId];
+                console.log("Client disconnected: " + socket.userId);
+            } catch (error) {
+                console.error({error});
+            }
+            
         });
     });
 }

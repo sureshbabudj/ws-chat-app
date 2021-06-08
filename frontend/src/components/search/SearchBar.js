@@ -25,7 +25,7 @@ function SearchBar(props) {
             setAutoCompleteItems(data)
         }).catch(err => {
             setAutoCompleteItems([]);
-            console.log(err);
+            props.sendToast({msg: err, autohide: false, type: 'error'});
         });
     }
 
@@ -36,27 +36,27 @@ function SearchBar(props) {
     }
 
     function changeThread(result) {
-        let isGroupChat = false;
         if (result.members && result.members.length) {
-            isGroupChat = true;
             if (!result.members.includes(props.user._id)) {
                 axios.post(`http://localhost:3001/api/groups/${result._id}/join`).then(({data}) => {
-                    console.log(data);
-                    doChangeThread(data, isGroupChat);
+                    props.sendToast({msg: `You have joined to the group ${result.name || result._id}`, autohide: true, type: 'info'});
+                    props.newGroup(data); // will take care of changing thread
+                    clearSearch();
                 }).catch(err => {
-                    console.log(err);
+                    props.sendToast({msg: err, autohide: false, type: 'error'});
                 });
             }
         } else {
-            doChangeThread(result, isGroupChat);
+            // add new contact in thread
+            props.sendToast({msg: `You are chatting to ${result.name || result._id} for the first time!` , autohide: true, type: 'info'});
+            props.newContact(result); // will take care of changing thread
+            clearSearch();
         }
     }
 
-    function doChangeThread(result, isGroupChat) {
-        const thread = {_id: result._id, isGroupChat};
+    function clearSearch() {
         searchRef.current.value = '';
         setAutoCompleteItems([]);
-        props.selectThread(thread); 
     }
 
     return (
@@ -96,7 +96,10 @@ function mapStateToProps(state) {
 }
 function mapDispatchToProps(dispatch) {
     return {
-        selectThread: (thread) => dispatch({type:'SET_THREAD', data: {thread}})
+        selectThread: (thread) => dispatch({type:'SET_THREAD', data: {thread}}),
+        newGroup: (group) => dispatch({type:'NEW_GROUP', data: {group}}),
+        newContact: (contact) => dispatch({type: 'NEW_CONTACT', data: {contact}}),
+        sendToast: (toast) => dispatch({type: 'NEW_TOAST', data: {toast}})
     }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(SearchBar);

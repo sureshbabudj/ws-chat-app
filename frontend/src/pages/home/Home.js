@@ -6,6 +6,7 @@ import Sidebar from '../../components/sidebar/Sidebar';
 import ChatBar from '../../components/chat-bar/ChatBar';
 import ChatWindow from '../../components/chat-window/ChatWindow';
 import ChatAside from '../../components/chat-aside/ChatAside';
+import CommonToast from '../../components/toast/CommonToast';
 import axios from 'axios';
 
 function Home(props) {
@@ -14,7 +15,7 @@ function Home(props) {
     axios.interceptors.response.use(response => {
         return response;
     }, error => {
-        console.log(error);
+        props.sendToast({msg: error, autohide: false, type: 'error'});
         if (error.response.status === 401) {
             history.push('./login')
         }
@@ -22,7 +23,7 @@ function Home(props) {
     });
     useEffect(() => {
        if(!props.user) {
-            console.log('login')
+            props.sendToast({msg: 'Please login', autohide: false, type: 'error'});
             history.push('./login')
        }
     }, [])
@@ -34,6 +35,7 @@ function Home(props) {
                 <ChatWindow />
                 <ChatAside />
             </div>}
+            <CommonToast />
         </div>
     )
 }
@@ -46,6 +48,8 @@ function mapStateToProps(state) {
     };
 }
 function mapDispatchToProps(dispatch) {
-    return {}
+    return {
+        sendToast: (toast) => dispatch({type: 'NEW_TOAST', data: {toast}})
+    }
 }
-export default connect(mapStateToProps)(Home);  
+export default connect(mapStateToProps, mapDispatchToProps)(Home);  
